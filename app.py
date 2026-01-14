@@ -1,7 +1,7 @@
 """
 画像OCR（文字起こし）ツール
 ChatGPT Vision APIを使用して画像から文字を抽出するStreamlitアプリケーション
-スターバックス風デザイン
+カフェ風デザイン
 """
 
 import streamlit as st
@@ -20,42 +20,44 @@ st.set_page_config(
     layout="centered"
 )
 
-# スターバックス風カスタムCSS
+# カフェ風カスタムCSS（ベージュ背景）
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&display=swap');
     
-    /* 全体の背景 */
+    /* 全体の背景 - 温かみのあるベージュ */
     .stApp {
-        background: linear-gradient(135deg, #1E3932 0%, #00704A 50%, #1E3932 100%);
+        background: linear-gradient(135deg, #F5F0E8 0%, #EDE4D8 50%, #F8F4EE 100%);
         font-family: 'Noto Sans JP', sans-serif;
     }
     
     /* メインコンテナ */
     .main .block-container {
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.85);
         border-radius: 20px;
         padding: 2rem 3rem;
         margin-top: 2rem;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(139, 109, 76, 0.15);
+        border: 1px solid rgba(139, 109, 76, 0.1);
     }
     
     /* タイトルスタイル */
-    .starbucks-title {
+    .cafe-title {
         text-align: center;
-        color: #1E3932;
-        font-size: 2.5rem;
+        color: #5D4E37;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         letter-spacing: 2px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
     
-    .starbucks-subtitle {
+    .cafe-subtitle {
         text-align: center;
-        color: #00704A;
+        color: #8B6D4C;
         font-size: 1rem;
-        font-weight: 300;
+        font-weight: 400;
         margin-bottom: 2rem;
         letter-spacing: 1px;
     }
@@ -69,53 +71,49 @@ st.markdown("""
     .logo-icon {
         font-size: 4rem;
         display: inline-block;
-        background: linear-gradient(135deg, #00704A, #1E3932);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     
     /* 区切り線 */
-    .starbucks-divider {
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #00704A, transparent);
+    .cafe-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #C4A77D, transparent);
         margin: 1.5rem 0;
         border: none;
     }
     
     /* ファイルアップローダー */
     .stFileUploader > div > div {
-        background: linear-gradient(135deg, #f7f7f7, #ffffff);
-        border: 2px dashed #00704A;
+        background: linear-gradient(135deg, #FDFCFA, #F9F6F1);
+        border: 2px dashed #C4A77D;
         border-radius: 15px;
         padding: 2rem;
         transition: all 0.3s ease;
     }
     
     .stFileUploader > div > div:hover {
-        border-color: #1E3932;
-        background: linear-gradient(135deg, #e8f5e9, #ffffff);
+        border-color: #8B6D4C;
+        background: linear-gradient(135deg, #FFF9F0, #FDF8F3);
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 112, 74, 0.2);
+        box-shadow: 0 5px 15px rgba(139, 109, 76, 0.15);
     }
     
     /* セレクトボックス */
     .stSelectbox > div > div {
-        background: #ffffff;
-        border: 2px solid #00704A;
+        background: #FDFCFA;
+        border: 2px solid #D4C4B0;
         border-radius: 10px;
-        color: #1E3932;
+        color: #5D4E37;
     }
     
     .stSelectbox > div > div:hover {
-        border-color: #1E3932;
-        box-shadow: 0 3px 10px rgba(0, 112, 74, 0.2);
+        border-color: #8B6D4C;
+        box-shadow: 0 3px 10px rgba(139, 109, 76, 0.15);
     }
     
     /* ボタン */
     .stButton > button {
-        background: linear-gradient(135deg, #00704A, #1E3932);
-        color: white;
+        background: linear-gradient(135deg, #8B6D4C, #6B5344);
+        color: #FFF9F0;
         border: none;
         border-radius: 25px;
         padding: 0.75rem 2rem;
@@ -123,13 +121,13 @@ st.markdown("""
         font-weight: 600;
         letter-spacing: 1px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 112, 74, 0.4);
+        box-shadow: 0 4px 15px rgba(139, 109, 76, 0.3);
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #1E3932, #00704A);
+        background: linear-gradient(135deg, #6B5344, #8B6D4C);
         transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(0, 112, 74, 0.5);
+        box-shadow: 0 6px 20px rgba(139, 109, 76, 0.4);
     }
     
     .stButton > button:active {
@@ -140,57 +138,63 @@ st.markdown("""
     .stTextArea textarea {
         font-family: 'Noto Sans JP', sans-serif;
         font-size: 14px;
-        border: 2px solid #d4e9e2;
+        border: 2px solid #E5DCD1;
         border-radius: 15px;
-        background: #fafffe;
-        color: #1E3932;
+        background: #FDFCFA;
+        color: #3D3425;
         padding: 1rem;
     }
     
     .stTextArea textarea:focus {
-        border-color: #00704A;
-        box-shadow: 0 0 10px rgba(0, 112, 74, 0.2);
+        border-color: #8B6D4C;
+        box-shadow: 0 0 10px rgba(139, 109, 76, 0.15);
+    }
+    
+    /* ラベルテキスト */
+    .stTextArea label, .stSelectbox label, .stFileUploader label {
+        color: #5D4E37 !important;
+        font-weight: 500;
     }
     
     /* サクセスメッセージ */
     .stSuccess {
-        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-        border-left: 4px solid #00704A;
+        background: linear-gradient(135deg, #F0EBE3, #E8E0D5);
+        border-left: 4px solid #8B6D4C;
         border-radius: 10px;
-        color: #1E3932;
+        color: #5D4E37;
     }
     
     /* エラーメッセージ */
     .stError {
-        background: linear-gradient(135deg, #ffebee, #ffcdd2);
-        border-left: 4px solid #c62828;
+        background: linear-gradient(135deg, #F8E8E8, #F5D5D5);
+        border-left: 4px solid #B85450;
         border-radius: 10px;
     }
     
     /* サイドバー */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1E3932 0%, #00704A 100%);
+        background: linear-gradient(180deg, #E8DFD3 0%, #D4C4B0 100%);
     }
     
     [data-testid="stSidebar"] .stMarkdown {
-        color: #ffffff;
+        color: #5D4E37;
     }
     
     [data-testid="stSidebar"] h2 {
-        color: #d4e9e2;
+        color: #4A3C2A;
         font-weight: 600;
         letter-spacing: 1px;
     }
     
     [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
-        color: #c8e6c9;
+        color: #5D4E37;
     }
     
-    /* サブヘッダー */
-    .stSubheader {
-        color: #1E3932;
+    /* マークダウンテキスト */
+    .stMarkdown h3 {
+        color: #5D4E37;
         font-weight: 600;
-        border-bottom: 2px solid #00704A;
+        border-bottom: 2px solid #C4A77D;
         padding-bottom: 0.5rem;
     }
     
@@ -198,44 +202,45 @@ st.markdown("""
     .stImage {
         border-radius: 15px;
         overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 5px 20px rgba(139, 109, 76, 0.15);
+        border: 3px solid #E8DFD3;
     }
     
     /* キャプション */
     .stCaption {
-        color: #666;
+        color: #8B6D4C;
         font-style: italic;
     }
     
     /* コードブロック */
     .stCode {
         border-radius: 10px;
-        border: 1px solid #d4e9e2;
+        border: 1px solid #E5DCD1;
+        background: #FDFCFA;
     }
     
     /* スピナー */
     .stSpinner > div {
-        border-color: #00704A;
-    }
-    
-    /* カード風コンテナ */
-    .info-card {
-        background: linear-gradient(135deg, #f5f5f5, #ffffff);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-left: 4px solid #00704A;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        border-color: #8B6D4C;
     }
     
     /* フッター */
     .footer {
         text-align: center;
-        color: #888;
-        font-size: 0.8rem;
+        color: #8B6D4C;
+        font-size: 0.85rem;
         margin-top: 2rem;
         padding-top: 1rem;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid #D4C4B0;
+        font-style: italic;
+    }
+    
+    /* デコレーション */
+    .coffee-beans {
+        text-align: center;
+        font-size: 1.5rem;
+        letter-spacing: 10px;
+        margin: 0.5rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -325,9 +330,10 @@ def main():
         <div class="logo-container">
             <span class="logo-icon">☕</span>
         </div>
-        <h1 class="starbucks-title">IMAGE OCR TOOL</h1>
-        <p class="starbucks-subtitle">~ 画像から文字を抽出 ~</p>
-        <div class="starbucks-divider"></div>
+        <h1 class="cafe-title">IMAGE OCR TOOL</h1>
+        <p class="cafe-subtitle">〜 画像から文字を抽出 〜</p>
+        <div class="coffee-beans">☕ ✦ ☕ ✦ ☕</div>
+        <div class="cafe-divider"></div>
     """, unsafe_allow_html=True)
     
     # サイドバー情報
@@ -377,7 +383,7 @@ def main():
             file_ext = uploaded_file.name.split('.')[-1].lower()
             st.caption(f"📄 {uploaded_file.name} | 📦 {file_size_mb:.2f}MB")
             
-            st.markdown('<div class="starbucks-divider"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="cafe-divider"></div>', unsafe_allow_html=True)
             
             # 実行ボタン
             if st.button("☕ 文字起こしを実行", type="primary", use_container_width=True):
@@ -426,7 +432,7 @@ def main():
     # フッター
     st.markdown("""
         <div class="footer">
-            Made with ☕ & 💚 | Image OCR Tool
+            ✦ Made with ☕ & 🤎 | Image OCR Tool ✦
         </div>
     """, unsafe_allow_html=True)
 
