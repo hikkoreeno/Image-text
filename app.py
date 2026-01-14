@@ -1,6 +1,7 @@
 """
 画像OCR（文字起こし）ツール
 ChatGPT Vision APIを使用して画像から文字を抽出するStreamlitアプリケーション
+スターバックス風デザイン
 """
 
 import streamlit as st
@@ -15,33 +16,226 @@ load_dotenv()
 # ページ設定
 st.set_page_config(
     page_title="画像OCR（文字起こし）ツール",
-    page_icon="📝",
+    page_icon="☕",
     layout="centered"
 )
 
-# カスタムCSS
+# スターバックス風カスタムCSS
 st.markdown("""
 <style>
-    .main-title {
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+    
+    /* 全体の背景 */
+    .stApp {
+        background: linear-gradient(135deg, #1E3932 0%, #00704A 50%, #1E3932 100%);
+        font-family: 'Noto Sans JP', sans-serif;
+    }
+    
+    /* メインコンテナ */
+    .main .block-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem 3rem;
+        margin-top: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+    }
+    
+    /* タイトルスタイル */
+    .starbucks-title {
         text-align: center;
-        color: #1E88E5;
+        color: #1E3932;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: 2px;
+    }
+    
+    .starbucks-subtitle {
+        text-align: center;
+        color: #00704A;
+        font-size: 1rem;
+        font-weight: 300;
         margin-bottom: 2rem;
+        letter-spacing: 1px;
     }
+    
+    /* ロゴアイコン */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .logo-icon {
+        font-size: 4rem;
+        display: inline-block;
+        background: linear-gradient(135deg, #00704A, #1E3932);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    /* 区切り線 */
+    .starbucks-divider {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #00704A, transparent);
+        margin: 1.5rem 0;
+        border: none;
+    }
+    
+    /* ファイルアップローダー */
+    .stFileUploader > div > div {
+        background: linear-gradient(135deg, #f7f7f7, #ffffff);
+        border: 2px dashed #00704A;
+        border-radius: 15px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stFileUploader > div > div:hover {
+        border-color: #1E3932;
+        background: linear-gradient(135deg, #e8f5e9, #ffffff);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 112, 74, 0.2);
+    }
+    
+    /* セレクトボックス */
+    .stSelectbox > div > div {
+        background: #ffffff;
+        border: 2px solid #00704A;
+        border-radius: 10px;
+        color: #1E3932;
+    }
+    
+    .stSelectbox > div > div:hover {
+        border-color: #1E3932;
+        box-shadow: 0 3px 10px rgba(0, 112, 74, 0.2);
+    }
+    
+    /* ボタン */
+    .stButton > button {
+        background: linear-gradient(135deg, #00704A, #1E3932);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 112, 74, 0.4);
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #1E3932, #00704A);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 112, 74, 0.5);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(-1px);
+    }
+    
+    /* テキストエリア */
     .stTextArea textarea {
-        font-family: 'Meiryo', sans-serif;
+        font-family: 'Noto Sans JP', sans-serif;
         font-size: 14px;
-    }
-    .success-box {
+        border: 2px solid #d4e9e2;
+        border-radius: 15px;
+        background: #fafffe;
+        color: #1E3932;
         padding: 1rem;
-        border-radius: 0.5rem;
-        background-color: #E8F5E9;
-        border: 1px solid #4CAF50;
     }
-    .error-box {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        background-color: #FFEBEE;
-        border: 1px solid #F44336;
+    
+    .stTextArea textarea:focus {
+        border-color: #00704A;
+        box-shadow: 0 0 10px rgba(0, 112, 74, 0.2);
+    }
+    
+    /* サクセスメッセージ */
+    .stSuccess {
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        border-left: 4px solid #00704A;
+        border-radius: 10px;
+        color: #1E3932;
+    }
+    
+    /* エラーメッセージ */
+    .stError {
+        background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        border-left: 4px solid #c62828;
+        border-radius: 10px;
+    }
+    
+    /* サイドバー */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1E3932 0%, #00704A 100%);
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #ffffff;
+    }
+    
+    [data-testid="stSidebar"] h2 {
+        color: #d4e9e2;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+    
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
+        color: #c8e6c9;
+    }
+    
+    /* サブヘッダー */
+    .stSubheader {
+        color: #1E3932;
+        font-weight: 600;
+        border-bottom: 2px solid #00704A;
+        padding-bottom: 0.5rem;
+    }
+    
+    /* 画像プレビュー */
+    .stImage {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* キャプション */
+    .stCaption {
+        color: #666;
+        font-style: italic;
+    }
+    
+    /* コードブロック */
+    .stCode {
+        border-radius: 10px;
+        border: 1px solid #d4e9e2;
+    }
+    
+    /* スピナー */
+    .stSpinner > div {
+        border-color: #00704A;
+    }
+    
+    /* カード風コンテナ */
+    .info-card {
+        background: linear-gradient(135deg, #f5f5f5, #ffffff);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border-left: 4px solid #00704A;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* フッター */
+    .footer {
+        text-align: center;
+        color: #888;
+        font-size: 0.8rem;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e0e0e0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -126,33 +320,43 @@ def perform_ocr(image_data: bytes, file_type: str, language: str) -> str:
 
 
 def main():
-    # タイトル
-    st.markdown("<h1 class='main-title'>📝 画像OCR（文字起こし）ツール</h1>", unsafe_allow_html=True)
-    st.markdown("---")
+    # ロゴとタイトル
+    st.markdown("""
+        <div class="logo-container">
+            <span class="logo-icon">☕</span>
+        </div>
+        <h1 class="starbucks-title">IMAGE OCR TOOL</h1>
+        <p class="starbucks-subtitle">~ 画像から文字を抽出 ~</p>
+        <div class="starbucks-divider"></div>
+    """, unsafe_allow_html=True)
     
     # サイドバー情報
     with st.sidebar:
-        st.header("ℹ️ 使い方")
+        st.markdown("## ☕ 使い方")
         st.markdown("""
-        1. 画像をアップロード
-        2. 言語を選択（任意）
-        3. 「文字起こしを実行」をクリック
-        4. 結果をコピー
+        1. 📷 画像をアップロード
+        2. 🌐 言語を選択（任意）
+        3. ▶️ 「文字起こしを実行」をクリック
+        4. 📋 結果をコピー
         """)
         st.markdown("---")
-        st.markdown("**対応形式**: PNG, JPG, JPEG, WEBP")
-        st.markdown("**最大サイズ**: 5MB")
+        st.markdown("**📁 対応形式**")
+        st.markdown("PNG, JPG, JPEG, WEBP")
+        st.markdown("**📦 最大サイズ**")
+        st.markdown("5MB")
+        st.markdown("---")
+        st.markdown("*Powered by ChatGPT Vision API*")
     
     # ファイルアップロード
     uploaded_file = st.file_uploader(
-        "画像ファイルを選択してください",
+        "☕ 画像ファイルをドロップまたは選択",
         type=["png", "jpg", "jpeg", "webp"],
         help="PNG, JPG, JPEG, WEBP形式に対応（最大5MB）"
     )
     
     # 言語選択
     language = st.selectbox(
-        "言語選択（任意）",
+        "🌐 言語選択（任意）",
         options=["自動判定", "日本語", "英語"],
         help="抽出する文字の言語を指定できます"
     )
@@ -166,18 +370,18 @@ def main():
             st.error(f"⚠️ ファイルサイズが大きすぎます（{file_size_mb:.1f}MB）。5MB以下のファイルを選択してください。")
         else:
             # 画像プレビュー
-            st.subheader("📷 アップロード画像")
+            st.markdown("### 📷 アップロード画像")
             st.image(uploaded_file, use_container_width=True)
             
             # ファイル情報表示
             file_ext = uploaded_file.name.split('.')[-1].lower()
-            st.caption(f"ファイル名: {uploaded_file.name} | サイズ: {file_size_mb:.2f}MB")
+            st.caption(f"📄 {uploaded_file.name} | 📦 {file_size_mb:.2f}MB")
             
-            st.markdown("---")
+            st.markdown('<div class="starbucks-divider"></div>', unsafe_allow_html=True)
             
             # 実行ボタン
-            if st.button("🔍 文字起こしを実行", type="primary", use_container_width=True):
-                with st.spinner("OCR処理中..."):
+            if st.button("☕ 文字起こしを実行", type="primary", use_container_width=True):
+                with st.spinner("✨ OCR処理中...しばらくお待ちください"):
                     try:
                         # 画像データの取得
                         image_data = uploaded_file.getvalue()
@@ -204,7 +408,7 @@ def main():
             
             # 結果表示
             if st.session_state.get('ocr_success') and 'ocr_result' in st.session_state:
-                st.subheader("📄 抽出結果")
+                st.markdown("### 📄 抽出結果")
                 
                 # 編集可能なテキストエリア
                 result_text = st.text_area(
@@ -217,7 +421,14 @@ def main():
                 # コピー用コードブロック
                 st.code(result_text, language=None)
                 
-                st.success("✅ 文字起こしが完了しました。上のコードブロックからテキストをコピーできます。")
+                st.success("✅ 文字起こしが完了しました！上のコードブロックからテキストをコピーできます。")
+    
+    # フッター
+    st.markdown("""
+        <div class="footer">
+            Made with ☕ & 💚 | Image OCR Tool
+        </div>
+    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
